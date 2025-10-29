@@ -7,6 +7,7 @@ on:
 
 jobs:
   build-and-push:
+    name: Build and Push Angular Frontend Docker Image
     runs-on: ubuntu-latest
 
     steps:
@@ -22,17 +23,16 @@ jobs:
           username: "aniuser"
           password: "dckr_pat_-ktgFv9zbZemgourVtBJzSlPtoI"
 
-      - name: Set Dynamic Tag
-        id: tag
+      - name: Set Dynamic Tag 🔢
         run: |
           TAG=v${{ github.run_number }}
           echo "TAG=$TAG" >> $GITHUB_ENV
           echo "🔥 Using tag: $TAG"
 
-      - name: Build Docker Image
+      - name: Build Docker Image 🏗️
         run: |
-          cd angular-frontend-example
+          cd angular-docker-example
           docker build -t aniuser/angular-frontend:${{ env.TAG }} .
 
-      - name: Push Docker Image
+      - name: Push Docker Image 🚀
         run: docker push aniuser/angular-frontend:${{ env.TAG }}
