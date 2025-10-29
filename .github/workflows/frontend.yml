@@ -24,7 +24,7 @@ jobs:
           password: "dckr_pat_-ktgFv9zbZemgourVtBJzSlPtoI"
 
       - name: Build Docker Image
-        run: docker build -t aniuser/angular-frontend:latest .
+        run: docker build -t aniuser/angular-frontend:latest ./angular-docker-example
 
       - name: Push Docker Image
         run: docker push aniuser/angular-frontend:latest
