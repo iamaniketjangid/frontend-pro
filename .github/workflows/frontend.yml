@@ -25,7 +25,7 @@ jobs:
 
       - name: Get latest tag and increment 🔢
         run: |
-          IMAGE="aniuser/angular-frontend"
+          IMAGE="${{ secrets.DOCKER_USERNAME }}/angular-frontend"
           latest_tag=$(curl -s https://hub.docker.com/v2/repositories/${IMAGE}/tags/?page_size=100 | jq -r '.results[].name' | grep '^v[0-9]*$' | sed 's/v//' | sort -n | tail -1)
           
           if [[ -z "$latest_tag" ]]; then
@@ -46,21 +46,21 @@ jobs:
         run: docker push aniuser/angular-frontend:${{ env.NEW_TAG }}
 
       - name: Show pushed image tag
-        run: echo "✅ Successfully pushed aniuser/angular-frontend:${{ env.NEW_TAG }}"
+        run: echo "✅ Successfully pushed ${{ secrets.DOCKER_USERNAME }}/angular-frontend:${{ env.NEW_TAG }}"
 
       # 🧠 EC2 DEPLOYMENT SECTION
       - name: Deploy to EC2 Instance 💻
         uses: appleboy/ssh-action@v1.2.0
         with:
-          host: "13.61.194.91"
+          host: "51.20.60.170"
           username: ubuntu
-          key: "asmadya1.pem"
+          key: "asmadiya"
           script: |
             sudo apt update -y
             sudo apt install docker.io -y
 
             echo "🔑 Logging into DockerHub..."
-            echo "dckr_pat_-ktgFv9zbZemgourVtBJzSlPtoI" | sudo docker login -u "aniuser" --password-stdin
+            echo ""dckr_pat_-ktgFv9zbZemgourVtBJzSlPtoI"" | sudo docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
             echo "🛑 Stopping old container..."
             sudo docker stop angular-frontend || true
@@ -70,6 +70,6 @@ jobs:
             sudo docker pull aniuser/angular-frontend:${{ env.NEW_TAG }}
 
             echo "🚀 Running new container..."
-            sudo docker run -d --name angular-frontend -p 80:80 aniuser/angular-frontend:${{ env.NEW_TAG }}
+            sudo docker run -d --name angular-frontend -p 80:80 ${{ secrets.DOCKER_USERNAME }}/angular-frontend:${{ env.NEW_TAG }}
 
             echo "✅ Deployment complete! Running version: ${{ env.NEW_TAG }}"
