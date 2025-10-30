@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-and-push:
-    name: Build and Push Angular Frontend Docker Image
+    name: Build & Push Angular Frontend Docker Image
     runs-on: ubuntu-latest
 
     steps:
@@ -23,32 +23,31 @@ jobs:
           username: "aniuser"
           password: "dckr_pat_-ktgFv9zbZemgourVtBJzSlPtoI"
 
-      - name: Get latest version tag from Docker Hub 🔢
-        id: get_version
+      - name: Set incremental tag 🔢
         run: |
-          IMAGE_NAME="aniuser/angular-frontend"
-          echo "Checking latest tag for $IMAGE_NAME..."
-          
-          # Get latest tag (only v-prefixed tags)
-          latest_tag=$(curl -s "https://hub.docker.com/v2/repositories/${IMAGE_NAME}/tags/?page_size=100" | jq -r '.results[].name' | grep '^v[0-9]\+$' | sort -V | tail -n 1)
-          
-          if [ -z "$latest_tag" ]; then
-            new_tag="v1"
+          IMAGE="aniuser/angular-frontend"
+          TAG_FILE="tag.txt"
+
+          # Fetch existing tag file (if it exists)
+          if [ -f "$TAG_FILE" ]; then
+            TAG=$(cat $TAG_FILE)
           else
-            new_tag="v$(( ${latest_tag#v} + 1 ))"
+            TAG=0
           fi
-          
-          echo "✅ New tag will be: $new_tag"
-          echo "NEW_TAG=$new_tag" >> $GITHUB_ENV
+
+          # Increment tag
+          NEW_TAG=$((TAG + 1))
+          echo $NEW_TAG > $TAG_FILE
+          echo "TAG=v$NEW_TAG" >> $GITHUB_ENV
+          echo "🔥 Using tag: v$NEW_TAG"
 
       - name: Build Docker Image 🏗️
         run: |
           cd angular-docker-example
-          docker build -t aniuser/angular-frontend:${{ env.NEW_TAG }} .
+          docker build -t aniuser/angular-frontend:${{ env.TAG }} .
 
       - name: Push Docker Image 🚀
-        run: |
-          docker push aniuser/angular-frontend:${{ env.NEW_TAG }}
+        run: docker push aniuser/angular-frontend:${{ env.TAG }}
 
       - name: Show pushed image tag
-        run: echo "✅ Successfully pushed aniuser/angular-frontend:${{ env.NEW_TAG }}"
+        run: echo "✅ Successfully pushed aniuser/angular-frontend:${{ env.TAG }}"
