@@ -23,31 +23,27 @@ jobs:
           username: "aniuser"
           password: "dckr_pat_-ktgFv9zbZemgourVtBJzSlPtoI"
 
-      - name: Set incremental tag 🔢
+      - name: Get latest tag and increment 🔢
         run: |
           IMAGE="aniuser/angular-frontend"
-          TAG_FILE="tag.txt"
-
-          # Fetch existing tag file (if it exists)
-          if [ -f "$TAG_FILE" ]; then
-            TAG=$(cat $TAG_FILE)
+          latest_tag=$(curl -s https://hub.docker.com/v2/repositories/${IMAGE}/tags/?page_size=1 | jq -r '.results[0].name')
+          
+          if [[ "$latest_tag" =~ ^v[0-9]+$ ]]; then
+            new_tag=v$(( ${latest_tag#v} + 1 ))
           else
-            TAG=0
+            new_tag=v1
           fi
-
-          # Increment tag
-          NEW_TAG=$((TAG + 1))
-          echo $NEW_TAG > $TAG_FILE
-          echo "TAG=v$NEW_TAG" >> $GITHUB_ENV
-          echo "🔥 Using tag: v$NEW_TAG"
+          
+          echo "NEW_TAG=$new_tag" >> $GITHUB_ENV
+          echo "🔥 Using tag: $new_tag"
 
       - name: Build Docker Image 🏗️
         run: |
           cd angular-docker-example
-          docker build -t aniuser/angular-frontend:${{ env.TAG }} .
+          docker build -t aniuser/angular-frontend:${{ env.NEW_TAG }} .
 
       - name: Push Docker Image 🚀
-        run: docker push aniuser/angular-frontend:${{ env.TAG }}
+        run: docker push aniuser/angular-frontend:${{ env.NEW_TAG }}
 
       - name: Show pushed image tag
-        run: echo "✅ Successfully pushed aniuser/angular-frontend:${{ env.TAG }}"
+        run: echo "✅ Successfully pushed aniuser/angular-frontend:${{ env.NEW_TAG }}"
