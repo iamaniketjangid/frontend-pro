@@ -23,17 +23,23 @@ jobs:
           username: "aniuser"
           password: "dckr_pat_-ktgFv9zbZemgourVtBJzSlPtoI"
 
-      - name: Get Latest Tag and Set Next Version
+      - name: Set incremental tag
         id: tag
         run: |
-          LAST_TAG=$(curl -s https://hub.docker.com/v2/repositories/aniuser/node-backend/tags/?page_size=1 | jq -r '.results[0].name' | sed 's/v//')
-          if [[ "$LAST_TAG" =~ ^[0-9]+$ ]]; then
-            NEXT_TAG=$((LAST_TAG + 1))
+          IMAGE_NAME=aniuser/angular-frontend
+          # Get the latest tag (v1, v2, v3...) from Docker Hub
+          LATEST_TAG=$(curl -s "https://hub.docker.com/v2/repositories/${IMAGE_NAME}/tags/?page_size=100" | jq -r '.results[].name' | grep '^v[0-9]*$' | sort -V | tail -n1)
+          
+          if [ -z "$LATEST_TAG" ]; then
+            NEW_TAG=v1
           else
-            NEXT_TAG=1
+            VERSION=${LATEST_TAG#v}
+            NEW_TAG="v$((VERSION + 1))"
           fi
-          echo "TAG=v$NEXT_TAG" >> $GITHUB_ENV
-          echo "🚀 Next tag: v$NEXT_TAG"
+          
+          echo "TAG=$NEW_TAG" >> $GITHUB_ENV
+          echo "🔥 Using tag: $NEW_TAG"
+
 
       - name: Build and Push Docker Image
         run: |
