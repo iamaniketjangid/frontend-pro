@@ -51,33 +51,7 @@ jobs:
       # 🧠 EC2 DEPLOYMENT SECTION
       - name: Setup SSH key
         run: |
-          echo "-----BEGIN RSA PRIVATE KEY-----
-MIIEowIBAAKCAQEAoINjDQPTWao7I4WMUphWzc0y6CApr2UktK00OO/rnPZZcvrE
-u8jDMlZob0fr34S2niL+OgM+i+8lj4q9QxRN/HmafRK78sNyDxHYypRs8utkccQZ
-QB4zkDXLIzTCGyWuPP7vGNsW1neoEkIpIWy9xTJInX2RcM44UcJG60aeViOO3gup
-r7sqEQrcocl8oM86DcsSY6ztsnvG0TLeYG4j5WKHJteTIgP34xApaaDYaFmukAph
-fukR/cgGGTWPmEQHmh9A63/QYjnsAJz8/TTTf4fCKz+cQ8vwuZCO001L/wLm3/3D
-eSXW3QdvGfu+fsVcGs/5QLEJaKCFvVu1MhJ4+QIDAQABAoIBACyT8LlXm6XmUiBO
-Yac6qbjkSUQQUqNkiqonBD7f2uavwC3fmS2x1wwu1Tg6mDZubC1E+Kfx6LgCRcM0
-u9VaWUJKH26m+k20nAO1aCjyycM5Pp8d4AlfmeBuICl56IKTl21XO94CUrhjaOkR
-OM0Qny+aBHLAwdi7XQbP1tRWu3ieXM5VWPsq9+wPOhnkQzEgNg6sb2s5B320EVFR
-RDSmOX00KYorufHSHCgT6FQiqE01FsL3+krl0VLSjXizbHhDJ1qVnQMLBfSiiH8r
-2qQvdjZWW5tipqE/GjgcRqNH22RExtj+vfUdGs7lMc00t4sG9L9qMFC3zDsTW1Vv
-9C1u39UCgYEA0kmUdtaHiIz5iI6uHj829pzEMf8i4Fa7pUiC3bR6XzWoMaVWpKEt
-rceSrzAVPknKCuOtlV6fBau4FcnxQQlhMGhVLD/6aC9mKX4MKNmjlwHKoGst/Gcw
-mdkAGmjFQ4nV6E3omPbhCqfp2GUKA8S7ZxXNE4w3xWFV9x2Gkq1iBOcCgYEAw2fk
-FjDCDbDOjw/v5/mpYM+qFl2Vs8DF0CIoiKBw3KW/Gw95QB2e4xsGbJhUpK8o1mfQ
-A/dxRdLxbV+crQYxLMVG8V8MYFdG9zdh7IqbdMEv8k/lQ0IXOABNaN/38Khe3irv
-Pz4xRr5AOKzyrOBKA1UraKONPS43IJwLhCOf9x8CgYEAgJxD0tKuHdOqodwxnYoo
-AXgrfjB+kho5tYK9lv7UgPp+Ha7zaMiy+T+/9KlBtNDIYxSQi3RNadh2Q804YgBs
-koCc5u1SJvomT2Yp5aoGJUsRND+Y5m/uB4nySDSfwQjB7MwJX9ROGohLuu9AysE9
-pHRu8m+lhHBddT93mKm18y0CgYBlTyXIA3t4kaRmM8MUKDKSyNfMRLTqvxVP9YXC
-YDxjiWNtajZY8YKBCG/qOYgY4d9wWd5VUCLgKp+VLy8R3dX8+kLvvXGzOUzHu2T/
-uFUk0UxEevvIRSm4lR+NMiFgGkslMGleBqaRoO229KPU0WxOEggxdioyABYAyCaI
-WdgDzQKBgAhRblv52sEO/nIEVj07CJq7yUkIqK72F0xHHi/nhh0By4Iw8BmCl/G9
-ggDSgnoJpHOmFxCJ4DA9q+GbUuwEBvMivh4x8dI/gUfe1PyCcJ5nctcDCYJqLmE8
-HJz+gqSyEQc1e4CaQYVZI+uB5t0pJ6MNvRJyMA78uJxHpkiDH3t1
------END RSA PRIVATE KEY-----" > asmadiya1.pem
+          echo "asmadiya1.pem" > private_key.pem
           chmod 600 private_key.pem
       - name: Deploy to EC2 Instance 💻
         uses: appleboy/ssh-action@v1.2.0
