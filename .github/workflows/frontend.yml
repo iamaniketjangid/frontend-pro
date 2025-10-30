@@ -23,40 +23,36 @@ jobs:
           username: "aniuser"
           password: "dckr_pat_-ktgFv9zbZemgourVtBJzSlPtoI"
 
-      # Step 1: Read or initialize version
-      - name: Set Dynamic Tag 🔢
-        id: version
+      - name: Get latest tag from Docker Hub
+        id: get_version
         run: |
-          # If .version file doesn't exist, start from 1
-          if [ ! -f .version ]; then
-            echo "1" > .version
+          IMAGE_NAME=aniuser/angular-frontend
+          echo "📦 Checking latest tag for $IMAGE_NAME"
+
+          # Fetch list of tags
+          response=$(curl -s https://hub.docker.com/v2/repositories/${IMAGE_NAME}/tags/?page_size=100)
+
+          # Extract all tags that match v<number>
+          tags=$(echo "$response" | jq -r '.results[].name' | grep -E '^v[0-9]+$' | sort -V)
+
+          if [ -z "$tags" ]; then
+            new_tag=v1
+          else
+            last_tag=$(echo "$tags" | tail -n 1)
+            num=${last_tag#v}
+            new_tag=v$((num + 1))
           fi
 
-          VERSION=$(cat .version)
-          TAG="v${VERSION}"
+          echo "✅ New tag: $new_tag"
+          echo "NEW_TAG=$new_tag" >> $GITHUB_ENV
 
-          echo "🔥 Current version: $TAG"
-          echo "TAG=$TAG" >> $GITHUB_ENV
-
-          # Increment version
-          NEXT_VERSION=$((VERSION + 1))
-          echo $NEXT_VERSION > .version
-
-      # Step 2: Commit updated version number
-      - name: Commit Version Update 📝
-        run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git add .version
-          git commit -m "Bump version to v${{ env.TAG }}" || echo "No changes to commit"
-          git push origin main || echo "No push access - skipping"
-
-      # Step 3: Build Docker Image
       - name: Build Docker Image 🏗️
         run: |
           cd angular-docker-example
-          docker build -t aniuser/angular-frontend:${{ env.TAG }} .
+          docker build -t aniuser/angular-frontend:${{ env.NEW_TAG }} .
 
-      # Step 4: Push Docker Image
       - name: Push Docker Image 🚀
-        run: docker push aniuser/angular-frontend:${{ env.TAG }}
+        run: docker push aniuser/angular-frontend:${{ env.NEW_TAG }}
+
+      - name: Show pushed image tag ✅
+        run: echo "✅ Image pushed with tag: ${{ env.NEW_TAG }}"
