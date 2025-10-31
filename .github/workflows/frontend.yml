@@ -1,12 +1,18 @@
 name: Frontend CI/CD ⚙️
 
 on:
-  push:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - closed
     branches:
-      - main
+      - main  # only for PRs targeting main branch
 
 jobs:
   build-and-deploy:
+    if: github.event.pull_request.merged == true  # run only after PR is merged
     name: Build, Push & Deploy Angular Frontend
     runs-on: ubuntu-latest
 
@@ -25,15 +31,15 @@ jobs:
 
       - name: Get latest tag and increment 🔢
         run: |
-          IMAGE="${{ secrets.DOCKER_USERNAME }}/angular-frontend"
+          IMAGE="aniuser/angular-frontend"
           latest_tag=$(curl -s https://hub.docker.com/v2/repositories/${IMAGE}/tags/?page_size=100 | jq -r '.results[].name' | grep '^v[0-9]*$' | sed 's/v//' | sort -n | tail -1)
-          
+
           if [[ -z "$latest_tag" ]]; then
             new_tag=v1
           else
             new_tag=v$((latest_tag + 1))
           fi
-          
+
           echo "NEW_TAG=$new_tag" >> $GITHUB_ENV
           echo "🔥 Using tag: $new_tag"
 
@@ -46,19 +52,15 @@ jobs:
         run: docker push aniuser/angular-frontend:${{ env.NEW_TAG }}
 
       - name: Show pushed image tag
-        run: echo "✅ Successfully pushed ${{ secrets.DOCKER_USERNAME }}/angular-frontend:${{ env.NEW_TAG }}"
+        run: echo "✅ Successfully pushed aniuser/angular-frontend:${{ env.NEW_TAG }}"
 
       # 🧠 EC2 DEPLOYMENT SECTION
-      - name: Setup SSH key
-        run: |
-          echo "asmadiya1.pem" > private_key.pem
-          chmod 600 private_key.pem
       - name: Deploy to EC2 Instance 💻
         uses: appleboy/ssh-action@v1.2.0
         with:
-          host: "51.20.60.170"
+          host: "16.170.214.218"
           username: ubuntu
-          key: "asmadiya1.pem"
+          key: ${{ secrets.EC2_SSH_KEY }}   # use secret instead of plain PEM file
           script: |
             sudo apt update -y
             sudo apt install docker.io -y
