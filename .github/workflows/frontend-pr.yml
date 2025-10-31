@@ -47,26 +47,34 @@ jobs:
 
       - name: Show pushed image tag
         run: echo "✅ Successfully pushed aniuser/angular-frontend:${{ env.NEW_TAG }}"
-deploy:
-  name: Deploy to EC2 💻
-  needs: build
-  runs-on: ubuntu-latest
-  environment:
-    name: production   # 👈 environment name (created in settings)
-    url: http://your-ec2-public-ip
 
-  steps:
-    - name: Deploy via SSH
-      uses: appleboy/ssh-action@v1.2.0
-      with:
-        host: "16.170.214.218"
-        username: ubuntu
-        key: ${{ secrets.EC2_SSH_KEY }}
-        script: |
-          sudo apt update -y
-          sudo apt install docker.io -y
-          echo "Deploying new version..."
-          sudo docker stop angular-frontend || true
-          sudo docker rm angular-frontend || true
-          sudo docker pull aniuser/angular-frontend:latest
-          sudo docker run -d --name angular-frontend -p 80:80 aniuser/angular-frontend:latest
+  deploy:
+    name: Deploy to EC2 💻
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    environment:
+      name: production1
+      url: http://16.170.214.218
+
+    steps:
+      - name: Connect to EC2 and Deploy
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: "16.170.214.218"
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            sudo apt update -y
+            sudo apt install docker.io -y
+
+            echo "🧹 Cleaning old container..."
+            sudo docker stop angular-frontend || true
+            sudo docker rm angular-frontend || true
+
+            echo "🚀 Pulling new image version..."
+            sudo docker pull aniuser/angular-frontend:${{ env.NEW_TAG }}
+
+            echo "🏃 Running new container..."
+            sudo docker run -d --name angular-frontend -p 80:80 aniuser/angular-frontend:${{ env.NEW_TAG }}
+
+            echo "✅ Deployment successful!"
