@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - main
+    types: [opened, synchronize, closed] # Trigger on PR create/update/merge
 
 jobs:
   build-and-deploy:
