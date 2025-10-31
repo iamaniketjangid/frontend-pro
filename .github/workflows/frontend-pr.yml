@@ -1,4 +1,4 @@
-name: Frontend CI/CD ⚙️ (PR Trigger)
+name: Frontend CI/CD ⚙️
 
 on:
   pull_request:
@@ -6,11 +6,10 @@ on:
       - main
 
 jobs:
-  build-and-deploy:
-    name: Build, Push & Deploy Angular Frontend (PR)
+  build:
+    name: Build and Push Docker Image 🏗️
     runs-on: ubuntu-latest
-    environment:
-      name: production1
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -24,33 +23,22 @@ jobs:
           username: "aniuser"
           password: "dckr_pat_-ktgFv9zbZemgourVtBJzSlPtoI"
 
-      - name: Get latest tag and increment 🔢
-        run: |
-          IMAGE="aniuser/angular-frontend"
-          latest_tag=$(curl -s https://hub.docker.com/v2/repositories/${IMAGE}/tags/?page_size=100 | jq -r '.results[].name' | grep '^v[0-9]*$' | sed 's/v//' | sort -n | tail -1)
-          
-          if [[ -z "$latest_tag" ]]; then
-            new_tag=v1
-          else
-            new_tag=v$((latest_tag + 1))
-          fi
-          
-          echo "NEW_TAG=$new_tag" >> $GITHUB_ENV
-          echo "🔥 Using tag: $new_tag"
-
-      - name: Build Docker Image 🏗️
+      - name: Build Docker Image
         run: |
           cd angular-docker-example
-          docker build -t aniuser/angular-frontend:${{ env.NEW_TAG }} .
+          docker build -t aniuser/angular-frontend:latest .
+          docker push aniuser/angular-frontend:latest
 
-      - name: Push Docker Image 🚀
-        run: docker push aniuser/angular-frontend:${{ env.NEW_TAG }}
+  deploy:
+    name: Deploy to EC2 💻
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: production   # 👈 environment name (created in settings)
+      url: http://your-ec2-public-ip
 
-      - name: Show pushed image tag
-        run: echo "✅ Successfully pushed aniuser/angular-frontend:${{ env.NEW_TAG }}"
-
-      # 🧠 EC2 DEPLOYMENT SECTION
-      - name: Deploy to EC2 Instance 💻
+    steps:
+      - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: "16.170.214.218"
@@ -59,18 +47,8 @@ jobs:
           script: |
             sudo apt update -y
             sudo apt install docker.io -y
-
-            echo "🔑 Logging into DockerHub..."
-            echo "dckr_pat_-ktgFv9zbZemgourVtBJzSlPtoI" | sudo docker login -u "aniuser" --password-stdin
-
-            echo "🛑 Stopping old container..."
+            echo "Deploying new version..."
             sudo docker stop angular-frontend || true
             sudo docker rm angular-frontend || true
-
-            echo "📦 Pulling new image..."
-            sudo docker pull aniuser/angular-frontend:${{ env.NEW_TAG }}
-
-            echo "🚀 Running new container..."
-            sudo docker run -d --name angular-frontend -p 80:80 aniuser/angular-frontend:${{ env.NEW_TAG }}
-
-            echo "✅ Deployment complete! Running version: ${{ env.NEW_TAG }}"
+            sudo docker pull aniuser/angular-frontend:latest
+            sudo docker run -d --name angular-frontend -p 80:80 aniuser/angular-frontend:latest
