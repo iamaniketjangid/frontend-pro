@@ -1,4 +1,4 @@
-name: Frontend PR CI/CD ⚙️
+name: Frontend CI/CD ⚙️ (PR Trigger)
 
 on:
   pull_request:
@@ -6,8 +6,8 @@ on:
       - main
 
 jobs:
-  build-and-test:
-    name: Build Angular Image for PR Validation 🧪
+  build-and-deploy:
+    name: Build, Push & Deploy Angular Frontend (PR)
     runs-on: ubuntu-latest
 
     steps:
@@ -47,3 +47,29 @@ jobs:
 
       - name: Show pushed image tag
         run: echo "✅ Successfully pushed aniuser/angular-frontend:${{ env.NEW_TAG }}"
+
+      # 🧠 EC2 DEPLOYMENT SECTION
+      - name: Deploy to EC2 Instance 💻
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: "16.170.214.218"
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            sudo apt update -y
+            sudo apt install docker.io -y
+
+            echo "🔑 Logging into DockerHub..."
+            echo "dckr_pat_-ktgFv9zbZemgourVtBJzSlPtoI" | sudo docker login -u "aniuser" --password-stdin
+
+            echo "🛑 Stopping old container..."
+            sudo docker stop angular-frontend || true
+            sudo docker rm angular-frontend || true
+
+            echo "📦 Pulling new image..."
+            sudo docker pull aniuser/angular-frontend:${{ env.NEW_TAG }}
+
+            echo "🚀 Running new container..."
+            sudo docker run -d --name angular-frontend -p 80:80 aniuser/angular-frontend:${{ env.NEW_TAG }}
+
+            echo "✅ Deployment complete! Running version: ${{ env.NEW_TAG }}"
