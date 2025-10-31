@@ -12,8 +12,6 @@ jobs:
     environment:
       name: production1
       url: https://16.170.214.218    
-      reviewers:
-        - iamaniketjangid
 
     steps:
       - name: Checkout Code
