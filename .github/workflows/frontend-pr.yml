@@ -52,7 +52,7 @@ jobs:
     name: Deploy to EC2 💻
     needs: build-and-test
     runs-on: ubuntu-latest
-    environment: production
+    environment: production1
 
     steps:
       - name: Connect to EC2 and Deploy
