@@ -3,12 +3,9 @@ name: Frontend CI/CD ⚙️
 on:
   pull_request:
     types:
-      - opened
-      - reopened
-      - synchronize
-      - closed
+      - closed       # trigger only when PR is merged or closed
     branches:
-      - main  # only for PRs targeting main branch
+      - main         # only for PRs targeting main branch
 
 jobs:
   build-and-deploy:
