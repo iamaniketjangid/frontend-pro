@@ -60,7 +60,7 @@ jobs:
         with:
           host: "16.170.214.218"
           username: ubuntu
-          key: "EC2_SSH_KEY"  # use secret instead of plain PEM file
+          key: ${{ secrets.EC2_SSH_KEY }}   # use secret instead of plain PEM file
           script: |
             sudo apt update -y
             sudo apt install docker.io -y
