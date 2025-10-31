@@ -52,9 +52,9 @@ jobs:
       - name: Deploy to EC2 Instance 💻
         uses: appleboy/ssh-action@v1.2.0
         with:
-          host: "51.20.60.170"
+          host: "16.170.214.218"
           username: ubuntu
-          key: "asmadiya1.pem"
+          key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             sudo apt update -y
             sudo apt install docker.io -y
