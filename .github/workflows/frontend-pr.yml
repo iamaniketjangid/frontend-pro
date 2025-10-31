@@ -34,7 +34,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     environment:
-      name: production   # 👈 environment name (created in settings)
+      name: production1   # 👈 environment name (created in settings)
       url: http://your-ec2-public-ip
 
     steps:
