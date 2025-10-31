@@ -53,8 +53,10 @@ jobs:
     needs: build-and-test
     runs-on: ubuntu-latest
     environment:
-      name: production1
+      name: production
       url: http://16.170.214.218
+      reviewers:
+        - iamaniketjangid  # replace with your GitHub username
 
     steps:
       - name: Connect to EC2 and Deploy
@@ -66,15 +68,11 @@ jobs:
           script: |
             sudo apt update -y
             sudo apt install docker.io -y
-
             echo "🧹 Cleaning old container..."
             sudo docker stop angular-frontend || true
             sudo docker rm angular-frontend || true
-
             echo "🚀 Pulling new image version..."
             sudo docker pull aniuser/angular-frontend:${{ env.NEW_TAG }}
-
             echo "🏃 Running new container..."
             sudo docker run -d --name angular-frontend -p 80:80 aniuser/angular-frontend:${{ env.NEW_TAG }}
-
             echo "✅ Deployment successful!"
