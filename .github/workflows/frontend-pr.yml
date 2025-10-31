@@ -1,4 +1,4 @@
-name: Frontend PR CI/CD ⚙️
+name: Frontend CI/CD ⚙️ (PR Trigger)
 
 on:
   pull_request:
@@ -6,10 +6,11 @@ on:
       - main
 
 jobs:
-  build-and-test:
-    name: Build Angular Image for PR Validation 🧪
+  build-and-deploy:
+    name: Build, Push & Deploy Angular Frontend (PR)
     runs-on: ubuntu-latest
-
+    environment:
+      name: production1
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -48,18 +49,8 @@ jobs:
       - name: Show pushed image tag
         run: echo "✅ Successfully pushed aniuser/angular-frontend:${{ env.NEW_TAG }}"
 
-  deploy:
-    name: Deploy to EC2 💻
-    needs: build-and-test
-    runs-on: ubuntu-latest
-    environment:
-      name: production
-      url: http://16.170.214.218
-      reviewers:
-        - iamaniketjangid  # replace with your GitHub username
-
-    steps:
-      - name: Connect to EC2 and Deploy
+      # 🧠 EC2 DEPLOYMENT SECTION
+      - name: Deploy to EC2 Instance 💻
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: "16.170.214.218"
@@ -68,11 +59,18 @@ jobs:
           script: |
             sudo apt update -y
             sudo apt install docker.io -y
-            echo "🧹 Cleaning old container..."
+
+            echo "🔑 Logging into DockerHub..."
+            echo "dckr_pat_-ktgFv9zbZemgourVtBJzSlPtoI" | sudo docker login -u "aniuser" --password-stdin
+
+            echo "🛑 Stopping old container..."
             sudo docker stop angular-frontend || true
             sudo docker rm angular-frontend || true
-            echo "🚀 Pulling new image version..."
+
+            echo "📦 Pulling new image..."
             sudo docker pull aniuser/angular-frontend:${{ env.NEW_TAG }}
-            echo "🏃 Running new container..."
+
+            echo "🚀 Running new container..."
             sudo docker run -d --name angular-frontend -p 80:80 aniuser/angular-frontend:${{ env.NEW_TAG }}
-            echo "✅ Deployment successful!"
+
+            echo "✅ Deployment complete! Running version: ${{ env.NEW_TAG }}"
