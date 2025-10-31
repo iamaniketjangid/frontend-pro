@@ -1,15 +1,12 @@
 name: Frontend CI/CD ⚙️
 
 on:
-  pull_request:
+  push:
     branches:
       - main
-    types: [opened, synchronize, closed] # Trigger on PR create/update/merge
 
 jobs:
   build-and-deploy:
-    # Run when PR is created or merged
-    if: github.event.action != 'closed' || github.event.pull_request.merged == true
     name: Build, Push & Deploy Angular Frontend
     runs-on: ubuntu-latest
 
@@ -28,15 +25,15 @@ jobs:
 
       - name: Get latest tag and increment 🔢
         run: |
-          IMAGE="aniuser/angular-frontend"
+          IMAGE="${{ secrets.DOCKER_USERNAME }}/angular-frontend"
           latest_tag=$(curl -s https://hub.docker.com/v2/repositories/${IMAGE}/tags/?page_size=100 | jq -r '.results[].name' | grep '^v[0-9]*$' | sed 's/v//' | sort -n | tail -1)
-
+          
           if [[ -z "$latest_tag" ]]; then
             new_tag=v1
           else
             new_tag=v$((latest_tag + 1))
           fi
-
+          
           echo "NEW_TAG=$new_tag" >> $GITHUB_ENV
           echo "🔥 Using tag: $new_tag"
 
@@ -49,15 +46,15 @@ jobs:
         run: docker push aniuser/angular-frontend:${{ env.NEW_TAG }}
 
       - name: Show pushed image tag
-        run: echo "✅ Successfully pushed aniuser/angular-frontend:${{ env.NEW_TAG }}"
+        run: echo "✅ Successfully pushed ${{ secrets.DOCKER_USERNAME }}/angular-frontend:${{ env.NEW_TAG }}"
 
       # 🧠 EC2 DEPLOYMENT SECTION
       - name: Deploy to EC2 Instance 💻
         uses: appleboy/ssh-action@v1.2.0
         with:
-          host: "16.170.214.218"
+          host: "51.20.60.170"
           username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}   # store PEM key in GitHub Secrets
+          key: "asmadiya1.pem"
           script: |
             sudo apt update -y
             sudo apt install docker.io -y
@@ -73,6 +70,6 @@ jobs:
             sudo docker pull aniuser/angular-frontend:${{ env.NEW_TAG }}
 
             echo "🚀 Running new container..."
-            sudo docker run -d --name angular-frontend -p 80:80 aniuser/angular-frontend:${{ env.NEW_TAG }}
+            sudo docker run -d --name angular-frontend -p 80:80 ${{ secrets.DOCKER_USERNAME }}/angular-frontend:${{ env.NEW_TAG }}
 
             echo "✅ Deployment complete! Running version: ${{ env.NEW_TAG }}"
