@@ -3,13 +3,17 @@ name: Frontend CI/CD ⚙️
 on:
   pull_request:
     types:
-      - closed       # trigger only when PR is merged or closed
+      - opened
+      - reopened
+      - synchronize
+      - closed
     branches:
-      - main         # only for PRs targeting main branch
+      - main  # only for PRs targeting main branch
 
 jobs:
   build-and-deploy:
-    if: github.event.pull_request.merged == true  # run only after PR is merged
+    # Run when PR is created or merged
+    if: github.event.action != 'closed' || github.event.pull_request.merged == true
     name: Build, Push & Deploy Angular Frontend
     runs-on: ubuntu-latest
 
@@ -57,7 +61,7 @@ jobs:
         with:
           host: "16.170.214.218"
           username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}   # use secret instead of plain PEM file
+          key: ${{ secrets.EC2_SSH_KEY }}   # store PEM key in GitHub Secrets
           script: |
             sudo apt update -y
             sudo apt install docker.io -y
